@@ -108,6 +108,13 @@
             border-radius: 5px;
             object-fit: cover;
             display: block;
+            opacity: 0; /* Initially hidden for smooth fade-in */
+            transition: opacity 0.5s ease-in-out; /* Smooth transition */
+        }
+        
+        /* Show image when loaded */
+        .photo-frame img.loaded {
+            opacity: 1;
         }
 
         .message {
@@ -232,7 +239,7 @@
     </div>
 
     <script>
-        // --- UPDATED CONFIGURATION (Fixed file names based on screenshot) ---
+        // --- CONFIGURATION ---
         const slides = [
             { 
                 img: "img_1.jpg", 
@@ -257,6 +264,18 @@
         ];
 
         let currentSlideIndex = 0;
+
+        // --- PRELOAD IMAGES ---
+        // This function forces the browser to download images in the background immediately
+        function preloadImages() {
+            slides.forEach((slide) => {
+                const img = new Image();
+                img.src = slide.img;
+            });
+        }
+        
+        // Start preloading as soon as the window loads
+        window.onload = preloadImages;
 
         // 1. Flower Animation
         function createFlowers() {
@@ -294,11 +313,23 @@
             const data = slides[currentSlideIndex];
             const imgElement = document.getElementById('currentImg');
             
-            imgElement.style.opacity = 0;
+            // Remove 'loaded' class to hide image initially (fade out)
+            imgElement.classList.remove('loaded');
+            
+            // Wait a tiny bit for fade out, then swap source
             setTimeout(() => {
                 imgElement.src = data.img;
                 document.getElementById('currentMsg').innerText = data.msg;
-                imgElement.style.opacity = 1;
+                
+                // When new image is ready, add 'loaded' class (fade in)
+                imgElement.onload = function() {
+                    imgElement.classList.add('loaded');
+                };
+                
+                // If image is already cached (preloaded), show it immediately
+                if (imgElement.complete) {
+                     imgElement.classList.add('loaded');
+                }
             }, 200);
         }
 
